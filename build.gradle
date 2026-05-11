@@ -365,7 +365,8 @@ test {
             '--enable-native-access=ALL-UNNAMED',
             '-Dio.netty.tryReflectionSetAccessible=true',
             '--enable-preview',
-            "-javaagent:${configurations.mockitoAgent.asPath}"
+            "-javaagent:${configurations.mockitoAgent.asPath}",
+            '-Djvector.experimental.enable_native_vectorization=true'
     ]
 
 
@@ -419,7 +420,8 @@ integTest {
                 '-Djdk.incubator.vector.VECTOR_ACCESS_OOB_CHECK=0',
                 '--enable-native-access=ALL-UNNAMED',
                 '-Dio.netty.tryReflectionSetAccessible=true',
-                '--enable-preview'
+                '--enable-preview',
+                '-Djvector.experimental.enable_native_vectorization=true'
         ]
 
         // There seems to be an issue when running multi node run or integ tasks with unicast_hosts
@@ -440,6 +442,7 @@ testClusters.integTest { cluster ->
     testDistribution = "ARCHIVE"
     systemProperty "java.security.policy", "file://${project.rootDir}/src/main/plugin-metadata/plugin-security.policy"
     systemProperty 'log4j.configurationFile', "${project.rootDir}/src/test/resources/log4j2.properties"
+    systemProperty 'jvector.experimental.enable_native_vectorization', 'true'
 
     // Optionally install security
     if (System.getProperty("security.enabled") != null) {
@@ -489,6 +492,8 @@ task integTestRemote(type: RestIntegTestTask) {
     systemProperty "https", System.getProperty("https")
     systemProperty "user", System.getProperty("user")
     systemProperty "password", System.getProperty("password")
+    systemProperty 'jvector.experimental.enable_native_vectorization', 'true'
+
 
     systemProperty 'cluster.number_of_nodes', "${_numNodes}"
 
