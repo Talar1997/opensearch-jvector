@@ -10,6 +10,8 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.lucene.store.IndexOutput;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 /**
  * JVectorRandomAccessWriter is a wrapper around IndexOutput that implements RandomAccessWriter.
@@ -101,5 +103,15 @@ public class JVectorIndexWriter implements IndexWriter {
     @Override
     public void writeUTF(String s) throws IOException {
         throw new UnsupportedOperationException("JVectorIndexWriter does not support writing UTF strings");
+    }
+
+    @Override
+    public void writeFloats(float[] floats, int offset, int count) throws IOException {
+        // same implementation as IndexWriter.writeFloats(), but added it here for debugging purposes
+        // my fyre env cannot see jvector classes.
+        ByteBuffer bb = ByteBuffer.allocate(count * 4);
+        bb.order(ByteOrder.BIG_ENDIAN).asFloatBuffer().put(floats, offset, count);
+        bb.rewind();
+        this.write(bb.array());
     }
 }

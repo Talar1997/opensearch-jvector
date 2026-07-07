@@ -15,6 +15,7 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.FloatBuffer;
+import java.util.Arrays;
 
 @Log4j2
 public class JVectorRandomAccessReader implements RandomAccessReader {
@@ -102,6 +103,10 @@ public class JVectorRandomAccessReader implements RandomAccessReader {
         indexInputDelegate.readBytes(byteBuffer.array(), offset, Float.BYTES * count);
         FloatBuffer buffer = byteBuffer.asFloatBuffer();
         buffer.get(floats, offset, count);
+
+        log.info("[JVectorRandomAccessReader, READ] thread={} offset={} count={}",
+                Thread.currentThread().getName(), offset, count);
+        System.out.println("[JVectorRandomAccessReader, READ] vector= " + Arrays.toString(floats));
     }
 
     @Override

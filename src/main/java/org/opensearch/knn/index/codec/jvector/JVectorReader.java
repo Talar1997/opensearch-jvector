@@ -296,6 +296,7 @@ public class JVectorReader extends KnnVectorsReader {
                 0,
                 sliceLength
             );
+            System.out.println("Reading file: " + vectorIndexFieldDataFileName);
             this.index = OnDiskGraphIndex.load(indexReaderSupplier, vectorIndexOffset);
 
             // If quantized load the compressed product quantized vectors with their codebooks

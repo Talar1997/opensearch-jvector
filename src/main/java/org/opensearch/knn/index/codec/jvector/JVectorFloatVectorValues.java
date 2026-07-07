@@ -15,6 +15,9 @@ import org.apache.lucene.index.FloatVectorValues;
 import org.apache.lucene.search.VectorScorer;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 public class JVectorFloatVectorValues extends FloatVectorValues {
     public static final int NO_VECTOR = -1;
@@ -147,10 +150,51 @@ public class JVectorFloatVectorValues extends FloatVectorValues {
     public float[] vectorValue(int i) throws IOException {
         try {
             final VectorFloat<?> vector = vectorFloatValue(i);
-            return (float[]) vector.get();
+            Object backing = vector.get();
+
+            if (backing instanceof float[] array) {
+                return array;
+            }
+
+            System.out.println("Backing: " + backing.getClass().getName());
+
+            // Tried to flip vectors but once its LE and next time is BE.
+//            float[] result = new float[vector.length()];
+//            System.out.println("Swap vector: ");
+//            for (int j = 0; j < vector.length(); j++) {
+//                float value = vector.get(j);
+//                int bits = Float.floatToRawIntBits(value);
+//                int swappedBits = Integer.reverseBytes(bits);
+//                result[j] = Float.intBitsToFloat(swappedBits);
+//                System.out.println(result[j]);
+//            }
+//
+//            System.out.println("No swap vector: ");
+//            float[] result2 = new float[vector.length()];
+//            for (int j = 0; j < vector.length(); j++) {
+//                result2[j] = vector.get(j);
+//                System.out.println(result2[j]);
+//            }
+
+            System.out.println("MemorySegment vector: ");
+            System.out.println(Arrays.toString(toFloatArray(backing)));
+
+            return toFloatArray(backing);
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }
+    }
+
+    public float[] toFloatArray(Object memorySegment) throws Exception {
+        Class<?> memorySegmentClass = Class.forName("java.lang.foreign.MemorySegment");
+        Class<?> valueLayoutClass = Class.forName("java.lang.foreign.ValueLayout");
+        Class<?> ofFloatClass = Class.forName("java.lang.foreign.ValueLayout$OfFloat");
+
+        Field javaFloatField = valueLayoutClass.getField("JAVA_FLOAT");
+        Object javaFloatLayout = javaFloatField.get(null);
+
+        Method toArrayMethod = memorySegmentClass.getMethod("toArray", ofFloatClass);
+        return (float[]) toArrayMethod.invoke(memorySegment, javaFloatLayout);
     }
 
     public VectorFloat<?> vectorValueObject(int i) throws IOException {
